@@ -30,5 +30,5 @@ github.md
 #Materials
 **/src/IllustrationChanger/
 **/src/PdfToTxt/
-**/bin/IllustrationChanger
-**/bin/PdfToTxt
+**/bin/IllustrationChanger/
+**/bin/PdfToTxt/
