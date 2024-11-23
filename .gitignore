@@ -28,5 +28,5 @@ github.txt
 github.md
 
 #Materials
-./src/IllustrationChanger/
-./src/PdfToTxt/
+**/src/IllustrationChanger/
+**/src/PdfToTxt/
