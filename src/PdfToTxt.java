@@ -45,9 +45,16 @@ public class PdfToTxt {
                     PDPage destinationPage = getBookmark(outline).findDestinationPage(document);
                     int pageNumber = document.getPages().indexOf(destinationPage);
 
-
+                    //custom end point
+                    int pageNumberEnd;
+                    if(getBookmarkEnd(outline, document) == null){
+                        pageNumberEnd = document.getNumberOfPages();
+                    }else{
+                        pageNumberEnd = document.getPages().indexOf(getBookmarkEnd(outline, document).findDestinationPage(document)); 
+                    }
+                    
                     // Durchlaufe alle Seiten der PDF
-                    for (int page = pageNumber; page < document.getNumberOfPages(); page++) {
+                    for (int page = pageNumber; page < pageNumberEnd; page++) { 
                         pdfStripper.setStartPage(page + 1);
                         pdfStripper.setEndPage(page + 1);
 
@@ -108,17 +115,19 @@ public class PdfToTxt {
             .replace("‘", "'") 
             .replace("’", "'") 
             .replace("★", "")
+            .replace("☆", "")
             .replace("…", "...")
             .replace("ßß", "\n")
             .replace("ß", "")
 
-            .replaceAll("(?<!\\d)([.!?])(?![\"'.,!?])\\s*", "$1\n") // Break line after ., !, ?
-            //.replaceAll("\\.(?=\\d)(?!\\d+\\.)", ".\n")
-            //.replaceAll("(\\.\\d+)", "$1\n") // Line break after decimals
-            .replaceAll("\\n\"\\s*", "\"\n");
+            .replaceAll("\\n\"\\s*", "\"\n")
+            .replaceAll("(?<!\\d)([.!?])(?![\"'.,)!?])(?<![!?])\\s*", "$1\n")
+            .replaceAll("\\?(\"?)\\s*", "?$1\n")
+            .replaceAll("\\!(\"!)\\s*", "?$1\n")
+            .replaceAll("\\.\"", ".\"\n");
         }
 
-    //find Bookmarks
+    //find Bookmarks start
     public PDOutlineItem getBookmark(PDOutlineNode bookmark) throws IOException{
         PDOutlineItem current = bookmark.getFirstChild();
         while (current != null){
@@ -131,6 +140,29 @@ public class PdfToTxt {
         return null;
     }
 
+    //find Bookmarks end
+    public PDOutlineItem getBookmarkEnd(PDOutlineNode bookmark, PDDocument document) throws IOException{
+        PDOutlineItem current = bookmark.getFirstChild();
+        while (current != null){
+            if(current.getTitle().contains("Postscript")){ 
+                int postscript = document.getPages().indexOf(current.findDestinationPage(document));
+                getBookmark(current);
+                current = current.getNextSibling();
+                int afterPostscript = document.getPages().indexOf(current.findDestinationPage(document));
+
+                if(current.getTitle().contains("Postscript")){return null;}// if no bookmark after postscript
+                if(postscript > afterPostscript){return null;}
+
+
+                return current;
+            }
+            getBookmark(current);
+            current = current.getNextSibling();
+        }
+        return null;
+    }
+
+    //Fix Headers
     private static String combineHeader(String text) {
         StringBuilder result = new StringBuilder();
         String[] fragments = text.split("ßß"); // Text an "ßß" aufteilen
