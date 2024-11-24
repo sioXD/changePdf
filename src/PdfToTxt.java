@@ -11,7 +11,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
-import org.apache.pdfbox.text.PDFTextStripper;
 
 public class PdfToTxt {
 
@@ -31,7 +30,7 @@ public class PdfToTxt {
 
                 try (PDDocument document = Loader.loadPDF(file)) {
                     //Font Size for Header
-                    List<Float> headerFontSizes = Arrays.asList(16.0f, 14.0f);
+                    List<Float> headerFontSizes = Arrays.asList(17.0f);
 
                     HeaderAwarePDFTextStripper pdfStripper = new HeaderAwarePDFTextStripper(headerFontSizes); //extends PDFTextStripper  bla bla ...
                     StringBuilder fullText = new StringBuilder();
@@ -90,6 +89,12 @@ public class PdfToTxt {
 
         String noLineBreaks = text.replace("\r", " ").replace("\n", " ");// Entferne alle ursprünglichen Zeilenumbrüche
 
+        //Header gets better
+        noLineBreaks = combineHeader(noLineBreaks);
+
+        noLineBreaks = noLineBreaks.trim();
+
+
         // Remove diacritical marks, accents, etc.
         String cleanedText = Normalizer.normalize(noLineBreaks, Normalizer.Form.NFD);
        // cleanedText = cleanedText.replaceAll("\\p{M}", "");
@@ -104,10 +109,12 @@ public class PdfToTxt {
             .replace("’", "'") 
             .replace("★", "")
             .replace("…", "...")
+            .replace("ßß", "\n")
+            .replace("ß", "")
 
             .replaceAll("(?<!\\d)([.!?])(?![\"'.,!?])\\s*", "$1\n") // Break line after ., !, ?
-            .replaceAll("\\.(?=\\d)(?!\\d+\\.)", ".\n")
-            .replaceAll("(\\.\\d+)", "$1\n") // Line break after decimals
+            //.replaceAll("\\.(?=\\d)(?!\\d+\\.)", ".\n")
+            //.replaceAll("(\\.\\d+)", "$1\n") // Line break after decimals
             .replaceAll("\\n\"\\s*", "\"\n");
         }
 
@@ -124,8 +131,36 @@ public class PdfToTxt {
         return null;
     }
 
-
+    private static String combineHeader(String text) {
+        StringBuilder result = new StringBuilder();
+        String[] fragments = text.split("ßß"); // Text an "ßß" aufteilen
     
+        StringBuilder headerBuffer = new StringBuilder(); // Buffer für Header-Zusammenführung
+    
+        for (String fragment : fragments) {
+            fragment = fragment.trim();
+    
+            if (fragment.startsWith("ß")) { // Fragment gehört zum Header
+                headerBuffer.append(fragment.replaceAll("ß", "")).append(" "); // "ß" entfernen und hinzufügen
+            } else { //  normal Text
+                if (headerBuffer.length() > 0) { 
+                    result.append(headerBuffer.toString().trim()).append("ßß");
+                    headerBuffer.setLength(0); 
+                }
+                result.append(fragment).append("ßß"); // add normal text
+            }
+        }
+        // cheack for errors
+        if (headerBuffer.length() > 0) {
+            result.append(headerBuffer.toString().trim()).append("ßß");
+        }
+    
+        return result.toString();
+    }
+    
+
+
+        
     // Funktion, die Zeilen mit "https://" entfernt
     private static String removeLinesWithLinks(String text) {
         StringBuilder result = new StringBuilder();

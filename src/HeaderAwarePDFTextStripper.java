@@ -19,8 +19,9 @@ class HeaderAwarePDFTextStripper extends PDFTextStripper {
             float fontSize = textPositions.get(0).getFontSizeInPt();
 
             if (headerFontSizes.contains(fontSize)) {
-                // Überschrift erkannt: Zeilenumbruch hinzufügen
-                super.writeString(text.trim() + "\n\n");
+                // Überschrift erkannt: Zeilenumbruch explizit einfügen
+                //System.out.println("Header detected: " + text);
+                super.writeString("ß" + text.trim() + "ßß"); // Doppelte Zeilenumbrüche für Header
             } else {
                 // Normaler Text
                 super.writeString(text.trim() + " ");
