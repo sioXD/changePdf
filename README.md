@@ -1,14 +1,34 @@
-# PDFCrop
+# PDFChang
 
-This is an Software for cropping, renaming and deleting link for PDFs, made in Java.
+This is a Software for two things:
+
+first: cropping, renaming and deleting link for PDFs, made in Java.
+
+second: scraping PDF Documents and copying all the text in an .txt document.
 
 ## Folder Structure
 
-PDF_Datien - Original Files
+`src\IllustrationChanger` - Main Folder for the first task
 
-Zugeschnittene_Datein - cropped Files
+- `src\IllustrationChanger\PDF_Files` - all original PDF files (not cropped)
 
-## Javascrpt Code for common.js
+- `src\IllustrationChanger\Cropped_Files` - all cropped files
+
+---
+
+`src\PdfToTxt` - cropped Files
+
+- `src\PdfToTxt\Pdf` - PDF files where the text should be extractet from
+
+- `src\PdfToTxt\Txt` - output txt files
+
+## Getting Startet
+
+- go to the `main` folder and run the projekt
+
+- _[OPTIONAL]_ : you can change the input and output folder inside the main
+
+### Javascrpt Code for common.js (first task)
 
 you can find the commen.js on: on : <https://you-zitsu.fandom.com/wiki/User:______/common.js>   -on "_____" needs to be your username
 
@@ -104,3 +124,9 @@ function changeImageUrl() {
 
 changeImageUrl();
 ```
+
+---
+
+### Where to get PDF files (second)
+
+In gerneral you can get them anywhere, but if you want to to use them for audiobooks, it's recommend to use for Example: <https://mp4directs.com/threads/classroom-of-the-elite-light-novels-all-volumes-pdf.549/> (here COTE)
