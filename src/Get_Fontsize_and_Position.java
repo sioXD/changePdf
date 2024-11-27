@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FontSizeAndPositionAnalyzer {
+public class Get_Fontsize_and_Position {
 
     public static void analyzeFontSizesAndPositions(File pdfFile, BufferedWriter writer) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
