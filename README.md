@@ -1,4 +1,4 @@
-# PDFChang
+# changePDF
 
 This is a Software for two things:
 
