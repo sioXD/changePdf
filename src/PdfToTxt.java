@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -58,16 +60,23 @@ public class PdfToTxt {
                         pdfStripper.setStartPage(page + 1);
                         pdfStripper.setEndPage(page + 1);
 
-                        String text = pdfStripper.getText(document).trim();
+                        String text = pdfStripper.getText(document)/* .trim()*/;
                         text = removeLinesWithLinks(text);
 
                         // Prüfe, ob die Seite leer ist oder nur aus Bildern besteht
                         if (text.isEmpty()) {
-                            fullText.append("Please view the Illustration.\n");
+                            fullText.append("\nPlease view the Illustration.\n");
                         } else {
                             fullText.append(processText(text));
                         }
                     }
+
+                    //remove all emty lines that where createt
+                    Pattern p = Pattern.compile("(?m)^[\\s]*\n");
+                    Matcher m = p.matcher(fullText);
+                    String cleanedText = m.replaceAll("");
+                    fullText.setLength(0);
+                    fullText.append(cleanedText);
 
 
                     // Schreibe den bearbeiteten Text in die Ausgabe-Datei
@@ -75,7 +84,7 @@ public class PdfToTxt {
                         writer.write(fullText.toString());
                     }
 
-                    System.out.print("Der Text wurde erfolgreich umgewandelt");
+                    System.out.print(count + "/" + files.length);
 
                     performFinalScan(outputFile);
 
@@ -83,9 +92,6 @@ public class PdfToTxt {
                     System.err.println("Fehler beim Verarbeiten der PDF-Datei: " + e);
                 }
 
-
-                
-              System.out.println(count + "/" + files.length);
             }//EOfor
         }//OFif
 
@@ -94,17 +100,22 @@ public class PdfToTxt {
     // Funktion zur Textverarbeitung
     private static String processText(String text) {
 
-        String noLineBreaks = text.replace("\r", " ").replace("\n", " ");// Entferne alle ursprünglichen Zeilenumbrüche
-
+        String noLineBreaks = text.replace("\r", "").replace("\n", "");// Entferne alle ursprünglichen Zeilenumbrüche
+        
         //Header gets better
         noLineBreaks = combineHeader(noLineBreaks);
 
-        noLineBreaks = noLineBreaks.trim();
+        //noLineBreaks = noLineBreaks.trim();
+        //noLineBreaks = noLineBreaks.replaceAll("\\s{2,}", " "); 
+        // Entferne Leerzeichen am Zeilenanfang
+       // noLineBreaks = noLineBreaks.replaceAll("\\.\"\\s*\\n\\s*", ".\"\n");
 
 
         // Remove diacritical marks, accents, etc.
-        String cleanedText = Normalizer.normalize(noLineBreaks, Normalizer.Form.NFD);
-       // cleanedText = cleanedText.replaceAll("\\p{M}", "");
+        String cleanedText = Normalizer.normalize(noLineBreaks, Normalizer.Form.NFD); 
+        cleanedText = cleanedText.replaceAll("\\p{M}", "");
+
+
 
         return cleanedText
             .replace("No.", "Number") //No. 11 --> Number 11
@@ -118,13 +129,11 @@ public class PdfToTxt {
             .replace("☆", "")
             .replace("…", "...")
             .replace("ßß", "\n")
-            .replace("ß", "")
 
-            .replaceAll("\\n\"\\s*", "\"\n")
-            .replaceAll("(?<!\\d)([.!?])(?![\"'.,)!?])(?<![!?])\\s*", "$1\n")
-            .replaceAll("\\?(\"?)\\s*", "?$1\n")
-            .replaceAll("\\!(\"!)\\s*", "?$1\n")
-            .replaceAll("\\.\"", ".\"\n");
+            // if too many: � --> problem might be ß
+  
+            .replaceAll("[.?!] \\s*", "$0\n") //.|?|! mit Leerzeichen, wird durch \n ersetzt
+            .replaceAll("[.?!]\"\\s*", "$0\n"); //.|?|! mit ", wird durch \n ersetzt
         }
 
     //find Bookmarks start
@@ -165,21 +174,28 @@ public class PdfToTxt {
     //Fix Headers
     private static String combineHeader(String text) {
         StringBuilder result = new StringBuilder();
-        String[] fragments = text.split("ßß"); // Text an "ßß" aufteilen
+        String[] fragments = text.split("ßß"); // Text an "ßß" aufteilen 
     
         StringBuilder headerBuffer = new StringBuilder(); // Buffer für Header-Zusammenführung
+        int countHead = 0;
     
         for (String fragment : fragments) {
             fragment = fragment.trim();
+            //System.out.println(fragment);
     
             if (fragment.startsWith("ß")) { // Fragment gehört zum Header
-                headerBuffer.append(fragment.replaceAll("ß", "")).append(" "); // "ß" entfernen und hinzufügen
+                if (countHead == 0){
+                    headerBuffer.append("ß" + fragment); //um am anfang ein \n zu haben
+                    countHead += 1;
+                }else{
+                    headerBuffer.append(fragment.replaceAll("ß", "")).append(" "); // "ß" entfernen und space hinzufügen
+                }
             } else { //  normal Text
                 if (headerBuffer.length() > 0) { 
                     result.append(headerBuffer.toString().trim()).append("ßß");
                     headerBuffer.setLength(0); 
                 }
-                result.append(fragment).append("ßß"); // add normal text
+                result.append(fragment); // add normal text
             }
         }
         // cheack for errors
@@ -226,12 +242,12 @@ public class PdfToTxt {
             }
     
             if (invalidCharCount > 0 || controlCharCount > 0) {
-                System.err.println(ANSI_RED_BRIGHT + "Final scan detected issues:" + ANSI_RESET);
+                System.err.println(ANSI_RED_BRIGHT + " --- Final scan detected issues:" + ANSI_RESET);
                 if (invalidCharCount > 0) {
-                    System.err.println(ANSI_RED + "  - Detected " + ANSI_RESET + invalidCharCount +  ANSI_RED + " occurrences of the invalid character '�'." + ANSI_RESET);
+                    System.err.println(ANSI_RED + "  -- Detected " + ANSI_RESET + invalidCharCount +  ANSI_RED + " occurrences of the invalid character '�'." + ANSI_RESET);
                 }
                 if (controlCharCount > 0) {
-                    System.err.println(ANSI_RED + "  - Detected " + ANSI_RESET + controlCharCount + ANSI_RED + " control characters that may indicate encoding issues." + ANSI_RESET);
+                    System.err.println(ANSI_RED + "  -- Detected " + ANSI_RESET + controlCharCount + ANSI_RED + " control characters that may indicate encoding issues." + ANSI_RESET);
                 }
                 throw new Exception("Issues detected during the final scan. Please review the output file.\n");
             }
@@ -239,7 +255,7 @@ public class PdfToTxt {
             System.out.println(" --- Final scan completed. No Errors Found.");
     
         } catch (Exception e) {
-            System.err.println(ANSI_RED + "Final scan error: " + e.getMessage() + ANSI_RESET);
+            System.err.println(ANSI_RED + "  -- Final scan error: " + e.getMessage() + ANSI_RESET);
         }
     }
 
