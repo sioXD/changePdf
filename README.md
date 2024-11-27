@@ -129,7 +129,7 @@ changeImageUrl();
 
 ### Infos (second)
 
-<ins>Where to get PDF files:</ins>
+<u>Where to get PDF files:</u>
 
 In gerneral you can get them anywhere, but if you want to to use them for audiobooks, it's recommend to use for Example: <https://mp4directs.com/threads/classroom-of-the-elite-light-novels-all-volumes-pdf.549/> (here COTE)
 
