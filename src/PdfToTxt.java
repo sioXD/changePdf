@@ -105,16 +105,9 @@ public class PdfToTxt {
         //Header gets better
         noLineBreaks = combineHeader(noLineBreaks);
 
-        //noLineBreaks = noLineBreaks.trim();
-        //noLineBreaks = noLineBreaks.replaceAll("\\s{2,}", " "); 
-        // Entferne Leerzeichen am Zeilenanfang
-       // noLineBreaks = noLineBreaks.replaceAll("\\.\"\\s*\\n\\s*", ".\"\n");
-
-
         // Remove diacritical marks, accents, etc.
         String cleanedText = Normalizer.normalize(noLineBreaks, Normalizer.Form.NFD); 
         cleanedText = cleanedText.replaceAll("\\p{M}", "");
-
 
 
         return cleanedText
@@ -258,8 +251,5 @@ public class PdfToTxt {
             System.err.println(ANSI_RED + "  -- Final scan error: " + e.getMessage() + ANSI_RESET);
         }
     }
-
-
-
 
 }//EOC
