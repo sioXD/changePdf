@@ -29,9 +29,9 @@ github.md
 output.txt
 
 #Materials used
-.pdf
+*.pdf
 
-./src/IllustrationChanger/
-./src/PdfToTxt/
-./bin/IllustrationChanger/
-./bin/PdfToTxt/
+src/IllustrationChanger/*
+src/PdfToTxt/*
+bin/IllustrationChanger/*
+bin/PdfToTxt/*
