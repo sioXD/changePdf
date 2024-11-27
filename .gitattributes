@@ -1,1 +1,3 @@
-/lib/* linguist-documentation
+lib/** linguist-documentation
+lib/** linguist-vendored
+lib/** linguist-detectable
